@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리액트 시간</title>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root">
+
+</div>
+<script type="text/babel">
+
+    const CommentForm = (prop) => {
+
+        const [content,setContent] = React.useState('')
+
+        const handleChange = (e) => {
+            setContent(e.target.value)
+        }
+
+        const handleSubmit = (e) => {
+            e.preventDefault()
+
+            prop.onCreate(content)
+            setContent('')
+        }
+
+            return (
+                <li className="comment-form">
+                    <form onSubmit={handleSubmit}>
+                        <h4>댓글쓰기 <span>({prop.count})</span></h4>
+                        <span className="ps_box">
+                            <input 
+                                type="text" 
+                                placeholder="댓글내용을 입력해주세요." 
+                                className="int" 
+                                name="content"
+                                value={content}
+                                onChange={handleChange}
+                            />
+                        </span>
+                        <input type="submit" value="등록" className="btn" />
+                    </form>
+                </li>
+            );
+    }
+
+    const CommentList = (prop) => {
+
+        const [content,setContent] = React.useState('')
+        const [key,setKey] = React.useState(Infinity)
+
+        const handleClick = (key) => {
+            setKey(key)
+        }
+
+        const handleChange = (e) => {
+            setContent(e.target.value)
+        }
+
+        const handleEnter = (e) => {
+            if(e.key === 'Enter'){
+                let key = key
+                let content = content
+                prop.onUpdate(key,content)
+                setContent('')
+                setKey(Infinity)
+            }
+        }
+
+        const inputBox = (content) => {
+            return(
+                <input
+                    type="text" 
+                    className="comment-update-input" 
+                    name="content"
+                    defaultValue={content}
+                    onChange={handleChange}
+                    onKeyDown={handleEnter}
+                />
+                )
+        }
+
+        const renderList = (prop) => {
+                prop.items.map((item,key)=>{
+                    return(
+
+                        <li key={key}>
+                            <ul className="comment-row">
+                                <li className="comment-id">{item.userid}</li>
+                                <li className="comment-content">
+                                    
+                                    <span onClick={ () => { handleClick(key) }}>
+                                        {key === key ? inputBox(item.content) : item.content}
+                                    </span>
+                                    <span 
+                                        className="comment-delete-btn"
+                                        onClick={ () => {prop.onDelete(key)} }
+                                    >
+                                        X
+                                    </span>
+                                </li>
+                                <li className="comment-date">{item.date}</li>
+                            </ul>
+                        </li>
+                    )
+
+                })
+        }
+
+        return (
+            <>
+                {renderList(prop)}
+            </>
+        );
+    }
+
+
+    const CommentFUll = () => { // 모든 댓글기능이 다그려지는 역활
+
+        const [list,setList] = React.useState([])
+
+       list.readonly = false
+        
+        const onCreate = (data) => { // 일단 댓글쓸때 사용할 함수를 미리 선언
+            let item = {userid:'web7722',content:data,date:'2021-07-01'}
+            let {list} = {...list} // 내현재 state list를 복사해서 list라는 변수에 넣겠다.
+            let newList = [{...list},{...item}] // 새로운변수를 선언해서 list라는 변수와, item이라는 변수를 넣어서 새로만들겠다.
+            
+            setList(newList)
+        }
+
+        const onUpdate = (index,content) => {
+            let {list} = {...list}
+            list[index].content = content
+
+            setList(list)
+        }
+
+        const onDelete = (data) => {
+            //data 변수 1 
+            let {list} = {...list}
+            let newList = list.filter((value,index)=>{
+                return data !== index
+            })
+
+            setList(newList)
+        }
+        
+        React.useEffect(() => { //생명주기 
+            list = [
+                {userid:'web7722',content:'안녕하세요 댓글이에요1',date:'2021-07-01'},
+                {userid:'web7722',content:'안녕하세요 댓글이에요2',date:'2021-07-01'},
+                {userid:'web7722',content:'안녕하세요 댓글이에요3',date:'2021-07-01'},
+        ]
+        },[])
+
+        return(
+            <>
+                <CommentForm 
+                    onCreate={onCreate}
+                    count={list.length}
+                />
+                <CommentList 
+                    items={list}
+                    onDelete={onDelete}
+                    onUpdate={onUpdate}
+                />
+            </>
+        )
+    }
+
+
+    const App = () => {
+        return(
+            <CommentFUll />
+        )
+    }
+
+    ReactDOM.render(
+        <App />,
+        document.querySelector('#root')
+    )
+
+</script>
+</body>
+</html> 
